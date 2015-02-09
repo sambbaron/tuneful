@@ -10,14 +10,14 @@ var Tuneful = function() {
     this.playButton.click(this.onPlayButtonClicked.bind(this));
     this.playing = false;
 
-    // When a song is click to load it call the onSongClicked function
+    // When a song is clicked, call the onSongClicked function
     $("#songs").on("click", ".song",
                    this.onSongClicked.bind(this));
-    // When the add song button is clicked call the onAddButtonClicked function
+    // When the add song button is clicked, call the onAddButtonClicked function
     $("#songs").on("click", "#add-button",
                    this.onAddButtonClicked.bind(this));
 
-    // When the user selects a file call the onFileAdded function
+    // When the user selects a file, call the onFileAdded function
     this.fileInput = $("#file-input");
     this.fileInput.change(this.onFileAdded.bind(this));
 
