@@ -11,12 +11,15 @@ class Song(Base):
     __tablename__ = "song"
     
     id = Column(Integer, primary_key=True)
-    file_id = Column(Integer, ForeignKey('file.id'), nullable=False)
+    file_id = Column(Integer, ForeignKey('file.id'))
     
     def as_dictionary(self):
         song = {
             "id": self.id,
-            "name": self.file.name
+            "file": {
+                "id": self.file.id,
+                "name": self.file.name    
+            }
         }
         return song
 
