@@ -207,8 +207,25 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(song.file.name, "Another Test Song")
         
     def testDeleteSong(self):
-        pass
+        """ Delete a song """
         
+        file = models.File(name="Test Song")
+        song = models.Song(file_id=1)
+        session.add_all([file, song])
+        session.commit()
+        
+        response = self.client.delete("/api/songs/1",
+            content_type = "application/json",
+            headers = [("Accept", "application/json")]
+        )
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "application/json")
+        self.assertEqual(data["message"], "Song 1 deleted")
+        
+        songs = session.query(models.Song).all()
+        self.assertEqual(len(songs), 0)
         
 if __name__ == "__main__":
     unittest.main()        

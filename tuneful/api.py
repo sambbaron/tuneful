@@ -119,3 +119,20 @@ def songs_put(id):
     return Response(data, 200, headers=headers,
                 mimetype="application/json")
     
+@app.route("/api/songs/<int:id>", methods=["DELETE"])
+@decorators.accept("application/json")
+def songs_delete(id):
+    """ Delete an existing song"""
+    
+    song = get_object(models.Song, id)
+    
+    # Test whether song exists
+    if type(song) == Response:
+        return song    
+    
+    session.delete(song)
+    session.commit()
+    
+    message = "Song {} deleted".format(id)
+    data = json.dumps({"message": message})
+    return Response(data, 200, mimetype="application/json")
