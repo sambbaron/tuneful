@@ -154,4 +154,45 @@ class TestAPI(unittest.TestCase):
         )
         
         self.assertEqual(response.status_code, 422)
-        data = json.loads(response.data)        
+        data = json.loads(response.data)    
+        
+    def testPutSong(self):
+        """ Update song """
+        
+        # Add new song
+        file1 = models.File(name="Test Song")
+        file2 = models.File(name="Another Test Song")
+        song = models.Song(file_id=1)
+        session.add_all([file1, file2, song])
+        session.commit()
+        
+        # Data to change song from File 1 to File 2
+        data = {"file": {"id": 2}}
+        
+        # Send PUT request and return response
+        response = self.client.put("/api/songs/1", 
+            data = json.dumps(data),
+            content_type = "application/json",                                   
+            headers = [("Accept", "application/json")]                                  
+        )
+        
+        # Test PUT response status code, mimetype, and location header
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "application/json")
+        self.assertEqual(urlparse(response.headers.get("Location")).path,
+                         "/api/songs/1")
+        
+        # Test post content from response
+        data = json.loads(response.data)
+        self.assertEqual(data["file"]["name"], "Another Test Song")
+        
+        # Query post from database
+        songs = session.query(models.Song).all()
+        self.assertEqual(len(songs), 1)
+        # Test post content from database
+        song = songs[0]
+        self.assertEqual(song.file.name, "Another Test Song")
+        
+        
+if __name__ == "__main__":
+    unittest.main()        

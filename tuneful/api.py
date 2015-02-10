@@ -72,3 +72,33 @@ def songs_post():
     data = json.dumps(song.as_dictionary())
     headers = {"Location": url_for("song_get", id=song.id)}
     return Response(data, 201, headers=headers, mimetype="application/json")
+
+@app.route("/api/songs/<int:id>", methods=["PUT"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def songs_put(id):
+    """ Update an existing song"""
+    
+    data = request.json
+    
+    song = session.query(models.Song).get(id)
+
+    if not song:
+        message = "Could not find song with id {}".format(id)
+        data = json.dumps({"message": message})
+        return Response(data, 404, mimetype="application/json")
+    
+    try:
+        validate(data, song_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+    
+    song.file_id = data["file"]["id"]
+    session.commit()
+    headers = {"Location": url_for("song_get", id=song.id)}
+    
+    data = json.dumps(song.as_dictionary())
+    return Response(data, 200, headers=headers,
+                mimetype="application/json")
+    
