@@ -18,7 +18,8 @@ class Song(Base):
             "id": self.id,
             "file": {
                 "id": self.file.id,
-                "name": self.file.name    
+                "name": self.file.name,
+                "path": url_for("uploaded_file", filename=self.file.name)
             }
         }
         return song
@@ -35,7 +36,7 @@ class File(Base):
         file = {
             "id": self.id,
             "name": self.name,
-            "path": url_for("uploaded_file", name=self.name)
+            "path": url_for("uploaded_file", filename=self.name)
         }
         return file
     
