@@ -3,6 +3,8 @@ import json
 
 from flask import request, Response, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import abort
+from sqlalchemy.orm import exc
 from jsonschema import validate, ValidationError
 
 import models
@@ -24,6 +26,27 @@ song_schema = {
     "required": ["file"]
 }
 
+def get_object(model, id):
+    """ Return one record or 404 error if doesn't exist """
+
+    data = session.query(model).get(id)
+    
+    if data:
+        return data
+    else:
+        message = "Could not find song with id {}".format(id)
+        data = json.dumps({"message": message})
+        return Response(data, 404, mimetype="application/json")
+    
+def validate_schema(data, schema):
+    """ Validate JSON against schema and return response if error """        
+
+    try:
+        validate(data, schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
 @app.route("/api/songs", methods=["GET"])
 @decorators.accept("application/json")
 def songs_get():
@@ -38,12 +61,10 @@ def songs_get():
 def song_get(id):
     """ Return single song """
     
-    song = session.query(models.Song).get(id)
-
-    if not song:
-        message = "Could not find song with id {}".format(id)
-        data = json.dumps({"message": message})
-        return Response(data, 404, mimetype="application/json")
+    song = get_object(models.Song, id)
+    
+    if type(song) == Response:
+        return song
 
     data = json.dumps(song.as_dictionary())
     return Response(data, 200, mimetype="application/json")
@@ -57,11 +78,9 @@ def songs_post():
     data = request.json
     
     # Validate JSON against schema
-    try:
-        validate(data, song_schema)
-    except ValidationError as error:
-        data = {"message": error.message}
-        return Response(json.dumps(data), 422, mimetype="application/json")
+    validate_response = validate_schema(data, song_schema)
+    if type(validate_response) == Response:
+        return validate_response
     
     # Add song to database
     song = models.Song(file_id=data["file"]["id"])
@@ -81,18 +100,16 @@ def songs_put(id):
     
     data = request.json
     
-    song = session.query(models.Song).get(id)
-
-    if not song:
-        message = "Could not find song with id {}".format(id)
-        data = json.dumps({"message": message})
-        return Response(data, 404, mimetype="application/json")
+    song = get_object(models.Song, id)
     
-    try:
-        validate(data, song_schema)
-    except ValidationError as error:
-        data = {"message": error.message}
-        return Response(json.dumps(data), 422, mimetype="application/json")
+    # Test whether song exists
+    if type(song) == Response:
+        return song
+    
+    # Validate JSON against schema
+    validate_response = validate_schema(data, song_schema)
+    if type(validate_response) == Response:
+        return validate_response
     
     song.file_id = data["file"]["id"]
     session.commit()

@@ -84,7 +84,20 @@ class TestAPI(unittest.TestCase):
         song = json.loads(response.data)
         self.assertEqual(song["file"]["name"], "Test File 2")
         
+    def testGetSongNoExists(self):
+        """ Get single song from database that does not exist """
         
+        # Return response
+        response = self.client.get("/api/songs/2",
+            headers=[("Accept", "application/json")]
+        )
+        
+        # Test status code, mimetype, and number of rows
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.mimetype, "application/json")
+        data = json.loads(response.data)
+        self.assertEqual(data["message"], "Could not find song with id 2")
+                
     def testPostSong(self):
         """ Add single song  """
         
@@ -192,6 +205,9 @@ class TestAPI(unittest.TestCase):
         # Test post content from database
         song = songs[0]
         self.assertEqual(song.file.name, "Another Test Song")
+        
+    def testDeleteSong(self):
+        pass
         
         
 if __name__ == "__main__":
