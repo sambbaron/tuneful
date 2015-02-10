@@ -227,5 +227,23 @@ class TestAPI(unittest.TestCase):
         songs = session.query(models.Song).all()
         self.assertEqual(len(songs), 0)
         
+    def test_get_uploaded_file(self):
+        """ Retreive uploaded file through HTTP request """
+        
+        # Use 'upload_path' function from utils.py to get file location
+        # Create file
+        path = upload_path("test.txt")
+        # Write to file
+        with open(path, "w") as f:
+            f.write("File contents")
+        
+        # Use GET request to retreive file
+        response = self.client.get("/uploads/test.txt")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "text/plain")
+        self.assertEqual(response.data, "File contents")
+        
+        
 if __name__ == "__main__":
     unittest.main()        
