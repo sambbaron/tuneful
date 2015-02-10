@@ -141,3 +141,28 @@ def songs_delete(id):
 def uploaded_file(filename):
     """ Return uploaded file """
     return send_from_directory(upload_path(), filename)
+
+@app.route("/api/files", methods=["POST"])
+@decorators.require("multipart/form-data")
+@decorators.accept("application/json")
+def file_post():
+    """ Upload file to folder """
+    
+    # Access file
+    file = request.files.get("file")
+    if not file:
+        data = {"message": "Could not find file data"}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+    
+    # Return file name
+    filename = secure_filename(file.filename)  # 'secure_filename' prevents injection of malicious files
+    # Add file to database
+    db_file = models.File(name=filename)
+    session.add(db_file)
+    session.commit()
+    # Save file to upload folder using 'upload_path' function from utils.py
+    file.save(upload_path(filename))
+
+    # Return dictionary with file data in JSON
+    data = db_file.as_dictionary()
+    return Response(json.dumps(data), 201, mimetype="application/json")

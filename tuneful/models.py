@@ -34,10 +34,10 @@ class File(Base):
     def as_dictionary(self):
         file = {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "path": url_for("uploaded_file", filename=self.name)
         }
         return file
     
 if __name__ == '__main__':
-    Base.metadata.create_all(engine)    
-
+    Base.metadata.create_all(engine)
