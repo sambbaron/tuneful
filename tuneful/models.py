@@ -35,7 +35,7 @@ class File(Base):
         file = {
             "id": self.id,
             "name": self.name,
-            "path": url_for("uploaded_file", filename=self.name)
+            "path": url_for("uploaded_file", name=self.name)
         }
         return file
     
